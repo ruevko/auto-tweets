@@ -1,0 +1,40 @@
+# This is a basic workflow that is manually triggered
+name: Manual Tweet Workflow
+
+# Controls when the action will run. Workflow runs when manually triggered using the UI or API.
+on:
+  workflow_dispatch:
+    # Inputs the workflow accepts.
+    inputs:
+      status:
+        # Friendly description to be shown in the UI instead of 'status'
+        description: 'The status ("tweet") to post to twitter.'
+        # Default value if no value is explicitly provided
+        default: 'This "tweet" is brought to you thanks to #GHActions'
+        # Input has to be provided for the workflow to run
+        required: true
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "tweet"
+  tweet:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # This job contains a single step called "Send Tweet Action" by Edward Thomson
+      - name: Send Tweet Action
+        # You may pin to the exact commit or the version.
+        # uses: ethomson/send-tweet-action@288f9339e0412e3038dce350e0da5ecdf12133a6
+        uses: ethomson/send-tweet-action@v1.0.0
+        with:
+          # The status ("tweet") to post to twitter.
+          status: ${{ github.event.inputs.status }}
+          # Consumer API key, available in the "Keys and tokens" section of your application in the Twitter Developer site.
+          consumer-key: ${{ secrets.TWITTER_API_KEY }}
+          # Consumer API secret key, available in the "Keys and tokens" section of your application in the Twitter Developer site.
+          consumer-secret: ${{ secrets.TWITTER_API_SECRET_KEY }}
+          # Application access token, available in the "Keys and tokens" section of your application in the Twitter Developer site.
+          access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          # Application access token secret, available in the "Keys and tokens" section of your application in the Twitter Developer site.
+          access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
