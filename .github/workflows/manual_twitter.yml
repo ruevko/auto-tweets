@@ -15,12 +15,9 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       # - uses: actions/checkout@v2.3.4
-      # Runs a single command using the runners shell
-      - name: Check working directory
-        run: pwd
 
       # Runs a set of commands using the runners shell
       - name: Check git and R
         run: |
-          git --version
-          Rscript --version
+          git remote -v
+          Rscript -e 'R.version.string'
