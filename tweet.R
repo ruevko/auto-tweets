@@ -24,8 +24,8 @@ newstatus = ifelse(file.exists("newstatus.txt"),
 
 newstatus = updateStatus(newstatus)
 
-Sys.sleep(30)
+# Sys.sleep(30)
 
-delstatus = deleteStatus(newstatus)
+# delstatus = deleteStatus(newstatus)
 
-if(delstatus) message("Success \u270C")
+# if(delstatus) message("Success \u270C")
