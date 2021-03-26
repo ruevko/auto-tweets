@@ -1,8 +1,15 @@
-stopifnot(file.exists("credentials.txt"))
+if (length(commandArgs(TRUE)) == 4) {
+
+   credentials = commandArgs(TRUE)
+
+} else {
+
+   stopifnot(file.exists("credentials.txt"))
+   credentials = readLines("credentials.txt")
+
+}
 
 library(twitteR)
-
-credentials = readLines("credentials.txt")
 
 options(httr_oauth_cache = FALSE)
 
