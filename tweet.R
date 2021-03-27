@@ -9,7 +9,7 @@ if (length(commandArgs(TRUE)) == 4) {
 
 }
 
-library(twitteR)
+library(twitteR, lib.loc = "resources/library")
 
 options(httr_oauth_cache = FALSE)
 
