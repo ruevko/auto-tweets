@@ -4,7 +4,9 @@ if (file.exists("resources/credentials.txt")) {
 
 if (length(creds) != 5) stop("Credentials in wrong amount or unavailable")
 
-library("rtweet", lib.loc = if (dir.exists("resources/library")) "resources/library")
+if (dir.exists("resources/library")) .libPaths("resources/library")
+
+library("rtweet")
 
 token = create_token(creds[1], creds[2], creds[3], creds[4], creds[5], set_renv = FALSE)
 
