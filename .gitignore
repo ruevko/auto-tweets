@@ -39,6 +39,4 @@ vignettes/*.pdf
 .Renviron
 
 # more
-credentials.txt
-newstatus.txt
 resources
