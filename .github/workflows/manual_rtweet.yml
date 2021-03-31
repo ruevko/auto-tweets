@@ -2,7 +2,15 @@
 name: Manual rtweet Workflow
 
 # Controls when the action will run
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    # Inputs the workflow accepts
+    inputs:
+      status:
+        # Friendly description to be shown in the UI instead of 'status'
+        description: 'The status to post to Twitter:'
+        # Input has to be provided for the workflow to run
+        required: false
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -32,8 +40,15 @@ jobs:
           packageVersion("rtweet", templib)
         shell: Rscript {0}
 
+      # Runs a single command using bash
+      - name: Write "new_status.txt" if status was input
+        run: '[[ ! -z "$NEW_STATUS" ]] && echo -e "$NEW_STATUS" > new_status.txt'
+        shell: bash
+        env:
+          NEW_STATUS: ${{ github.event.inputs.status }}
+
       # Runs a single command using the runners shell
-      - name: Run tweet.R
+      - name: Run "tweet.R"
         run: Rscript tweet.R "$APP_NAME" "$API_KEY" "$API_SECRET" "$ACCESS_TOKEN" "$ACCESS_SECRET"
         env:
           APP_NAME: ${{ secrets.TWITTER_APP_NAME }}
