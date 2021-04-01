@@ -1,0 +1,10 @@
+These rows have ......... 1
+twenty seven ............ 2
+characters .............. 3
+and supposedly .......... 4
+with ten of these ....... 5
+we will reach ........... 6
+the maximum amount ...... 7
+of characters ........... 8
+that one may put ........ 9
+in a single ........ #tweet
