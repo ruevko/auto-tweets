@@ -22,17 +22,24 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2
 
       # Runs a set of commands using the runners shell
-      - name: Check git and R and install "libcurl"
+      - name: Check git, write R version, and install "libcurl"
         run: |
           git log
-          Rscript -e 'R.version.string'
+          echo "RVERSION=$(Rscript -e 'cat(as.character(getRversion()))')" >> $GITHUB_ENV
           sudo apt-get install libcurl4-openssl-dev
 
+      - id: rcache
+        uses: actions/cache@v2
+        with:
+          path: resources/library
+          key: ${{ runner.os }}-R-${{ env.RVERSION }}
+
       # Runs a set of commands using Rscript
-      - name: Install "rtweet"
+      - name: Install "rtweet" package
+        if: steps.rcache.outputs.cache-hit != 'true'
         run: |
           templib = "resources/library"
           dir.create(templib, recursive = TRUE)
@@ -48,7 +55,7 @@ jobs:
           NEW_STATUS: ${{ github.event.inputs.status }}
 
       # Runs a single command using the runners shell
-      - name: Run "tweet.R"
+      - name: Run "tweet.R" script
         run: Rscript tweet.R "$APP_NAME" "$API_KEY" "$API_SECRET" "$ACCESS_TOKEN" "$ACCESS_SECRET"
         env:
           APP_NAME: ${{ secrets.TWITTER_APP_NAME }}
