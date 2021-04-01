@@ -9,13 +9,11 @@ on:
 jobs:
   tweet:
     runs-on: ubuntu-latest
-    env:
-      NEW_STATUS: '...'
     # This job contains two steps
     steps:
       # The first step sets NEW_STATUS with either "today_status.txt" or a timestamp
       - name: Set the status to post to twitter
-        run: '[ -f today_status.txt ] && NEW_STATUS="$(cat today_status.txt)" || NEW_STATUS="$(date +%FT%T)"'
+        run: '[ -f today_status.txt ] && echo "NEW_STATUS=$(cat today_status.txt)" >> $GITHUB_ENV || echo "NEW_STATUS=$(date +%FT%T)" >> $GITHUB_ENV'
         shell: bash
       # The second step uses "Send Tweet Action" by Edward Thomson
       - uses: ethomson/send-tweet-action@v1.0.0
