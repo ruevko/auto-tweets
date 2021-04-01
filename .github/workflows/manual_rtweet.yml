@@ -48,11 +48,9 @@ jobs:
         shell: Rscript {0}
 
       # Runs a single command using bash
-      - name: Write "new_status.txt" if status was input
-        run: '[[ ! -z "$NEW_STATUS" ]] && echo -e "$NEW_STATUS" > new_status.txt'
+      - if: ${{ github.event.inputs.status != '' }}
+        run: 'echo -e "${{ github.event.inputs.status }}" > new_status.txt'
         shell: bash
-        env:
-          NEW_STATUS: ${{ github.event.inputs.status }}
 
       # Runs a single command using the runners shell
       - name: Run "tweet.R" script
