@@ -9,13 +9,15 @@ on:
 jobs:
   tweet:
     runs-on: ubuntu-latest
-    # This job contains two steps
+    # This job contains three steps
     steps:
-      # The first step sets NEW_STATUS with either "today_status.txt" or a timestamp
+      # The first step checks out auto-tweets in order to access "today_status.txt"
+      - uses: actions/checkout@v2
+      # The second step sets NEW_STATUS with either "today_status.txt" or a timestamp
       - name: Set the status to post to twitter
         run: '[ -f today_status.txt ] && echo "NEW_STATUS=$(cat today_status.txt)" >> $GITHUB_ENV || echo "NEW_STATUS=$(date +%FT%T)" >> $GITHUB_ENV'
         shell: bash
-      # The second step uses "Send Tweet Action" by Edward Thomson
+      # The third step tweets NEW_STATUS using "Send Tweet Action" by Edward Thomson
       - uses: ethomson/send-tweet-action@v1.0.0
         with:
           # The status ("tweet") to post to twitter.
