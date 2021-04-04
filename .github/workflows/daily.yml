@@ -2,6 +2,7 @@
 name: Daily Workflow
 
 on:
+  workflow_dispatch:
   schedule:
     # This syntax means to execute the workflow everyday at UTC noon
     - cron:  '0 12 * * *'
@@ -15,7 +16,10 @@ jobs:
       - uses: actions/checkout@v2
       # The second step sets NEW_STATUS with either "today_status.txt" or a timestamp
       - name: Set the status to post to twitter
-        run: '[ -f today_status.txt ] && echo "NEW_STATUS=$(cat today_status.txt)" >> $GITHUB_ENV || echo "NEW_STATUS=$(date +%FT%T)" >> $GITHUB_ENV'
+        run: |
+          NEW_STATUS="$(date '+%FT%T')"
+          [ -f today_status.txt ] && NEW_STATUS="$(tr -d '\r' < today_status.txt | tr '\n' ' ')"
+          echo "NEW_STATUS=$NEW_STATUS" >> $GITHUB_ENV
         shell: bash
       # The third step tweets NEW_STATUS using "Send Tweet Action" by Edward Thomson
       - uses: ethomson/send-tweet-action@v1.0.0
