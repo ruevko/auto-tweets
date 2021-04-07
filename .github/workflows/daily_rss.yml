@@ -1,0 +1,46 @@
+name: Daily RSS Workflow
+
+on:
+  workflow_dispatch:
+  # This syntax means to execute the workflow everyday at 21:30 UTC
+  schedule:
+    - cron:  '30 21 * * *'
+
+jobs:
+  # This workflow contains a single job called "rtweet"
+  rtweet:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out your repository, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Runs a set of commands using the runners shell
+      - name: Write R version and install "libcurl"
+        run: |
+          echo "RVERSION=$(Rscript -e 'cat(as.character(getRversion()))')" >> $GITHUB_ENV
+          sudo apt-get install libcurl4-openssl-dev
+
+      # Creates or restores a packages cache
+      - id: rcache
+        uses: actions/cache@v2
+        with:
+          path: resources/library
+          key: ${{ runner.os }}-R-${{ env.RVERSION }}
+
+      # Runs a set of commands using Rscript
+      - name: Install "rtweet" and "xml2" packages
+        if: steps.rcache.outputs.cache-hit != 'true'
+        run: |
+          dir.create("resources/library", recursive = TRUE)
+          install.packages(c("rtweet", "xml2"), "resources/library", quiet = TRUE)
+        shell: Rscript {0}
+
+      # Runs a single command using the runners shell
+      - name: Run "tweet_rss.R" script
+        run: Rscript tweet_rss.R "$APP_NAME" "$API_KEY" "$API_SECRET" "$ACCESS_TOKEN" "$ACCESS_SECRET"
+        env:
+          APP_NAME: ${{ secrets.TWITTER_APP_NAME }}
+          API_KEY: ${{ secrets.TWITTER_API_KEY }}
+          API_SECRET: ${{ secrets.TWITTER_API_KEY_SECRET }}
+          ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          ACCESS_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
