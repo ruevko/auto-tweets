@@ -25,7 +25,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: resources/library
-          key: ${{ runner.os }}-R-${{ env.RVERSION }}
+          key: ${{ runner.os }}-R${{ env.RVERSION }}-packages
 
       # Runs a set of commands using Rscript
       - name: Install "rtweet" and "xml2" packages
