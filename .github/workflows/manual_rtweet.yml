@@ -35,7 +35,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: resources/library
-          key: ${{ runner.os }}-R-${{ env.RVERSION }}
+          key: ${{ runner.os }}-R${{ env.RVERSION }}-packages
 
       # Runs a set of commands using Rscript
       - name: Install "rtweet" package
@@ -43,7 +43,7 @@ jobs:
         run: |
           templib = "resources/library"
           dir.create(templib, recursive = TRUE)
-          install.packages("rtweet", templib, quiet = TRUE)
+          install.packages(c("rtweet", "xml2"), templib, quiet = TRUE)
           packageVersion("rtweet", templib)
         shell: Rscript {0}
 

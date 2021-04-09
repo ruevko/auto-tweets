@@ -18,7 +18,7 @@ if (dir.exists("resources/library")) .libPaths("resources/library")
 
 message("Using ", R.version.string)
 library("rtweet"); message("...and rtweet version ", packageVersion("rtweet"))
-library("xml2"); message("...and xml2 version ", packageVersion("rtweet"))
+library("xml2"); message("...and xml2 version ", packageVersion("xml2"))
 
 token = create_token(creds[1], creds[2], creds[3], creds[4], creds[5], set_renv = FALSE)
 
@@ -50,7 +50,7 @@ if (!any(rss_is_new)) message("No new POSTS to tweet.\nKeep up the good work!") 
 
       while (nchar(tweet) > tweet_limit - nchar(tweet_link)) tweet = sub("\\s+\\S*$", "[...]", tweet)
 
-      paste(tweet_start, tweet, tweet_link, sep = "\n") %>% cat("\n")#post_tweet(token = token)
+      paste(tweet_start, tweet, tweet_link, sep = "\n") %>% post_tweet(token = token)
       if (i != max(which(rss_is_new))) Sys.sleep(3)
    }
 }
