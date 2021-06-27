@@ -7,10 +7,10 @@ if (length(creds) != 5) stop("Credentials in wrong amount or unavailable")
 if (dir.exists("resources/library")) .libPaths("resources/library")
 
 message("Using ", R.version.string)
-library("rtweet"); message("...and rtweet version ", packageVersion("rtweet"))
+library("rtweet"); message("and rtweet version ", packageVersion("rtweet"))
 
 token = create_token(creds[1], creds[2], creds[3], creds[4], creds[5], set_renv = FALSE)
 
 if (file.exists("new_status.txt")) {
-   readLines("new_status.txt") %>% paste(collapse = "\n") %>% post_tweet(token = token)
+   readLines("new_status.txt") |> paste(collapse = "\n") |> post_tweet(token = token)
 } else post_tweet(token = token)
