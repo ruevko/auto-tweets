@@ -4,7 +4,7 @@ if (file.exists("resources/credentials.txt")) {
 
 if (length(creds) != 5) stop("Credentials in wrong amount or unavailable")
 
-rss_url = NULL # a RSS feed URL, if NULL it will use a modified version of https://xmin.yihui.org/index.xml
+rss_url = NULL # a RSS feed URL, if NULL it will use The rOpenSci Blog's https://ropensci.org/blog/index.xml
 use_titles = FALSE # by default RSS item's descriptions are tweeted, set this to TRUE to tweet titles instead
 time_format = "%a, %d %b %Y %T %z" # RSS pubDate format, the default is like Sun, 07 Jan 1979 14:28:56 -0500
 tweet_start = "New Blog Post:" # a message to start every tweet with
@@ -14,14 +14,13 @@ if (tweet_limit < 100 | tweet_limit > 280) {
    stop("That tweet_limit won't work!")
 } else tweet_limit = tweet_limit - nchar(tweet_start) - 3
 
-rss = if (is.null(rss_url)) read_xml("yihui-xmin-rss.xml") else GET(rss_url) |> content(encoding = "UTF-8")
-
 if (dir.exists("resources/library")) .libPaths("resources/library")
 
 message("Using ", R.version.string)
-library("httr"); message("and httr version ", packageVersion("httr"))
 library("xml2"); message("and  xml2 version ", packageVersion("xml2"))
 library("rtweet"); message("and rtweet version ", packageVersion("rtweet"))
+
+rss = if (is.null(rss_url)) read_xml("https://ropensci.org/blog/index.xml") else read_xml(rss_url)
 
 rss_times = xml_find_all(rss, "channel/item/pubDate") |> xml_text() |> as.POSIXct(format = time_format)
 # for a RSS item to be tweeted, its pubDate must be within the last day, past and future items are ignored

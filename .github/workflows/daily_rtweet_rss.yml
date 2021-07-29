@@ -36,8 +36,8 @@ jobs:
         shell: Rscript {0}
 
       # Runs a single command using the runners shell
-      - name: Run "tweet_rss.R" script
-        run: Rscript tweet_rss.R "$APP_NAME" "$API_KEY" "$API_SECRET" "$ACCESS_TOKEN" "$ACCESS_SECRET"
+      - name: Run "rtweet_rss.R" script
+        run: Rscript rtweet_rss.R "$APP_NAME" "$API_KEY" "$API_SECRET" "$ACCESS_TOKEN" "$ACCESS_SECRET"
         env:
           APP_NAME: ${{ secrets.TWITTER_APP_NAME }}
           API_KEY: ${{ secrets.TWITTER_API_KEY }}
