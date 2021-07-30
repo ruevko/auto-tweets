@@ -1,12 +1,13 @@
 on:
+  workflow_dispatch:
   schedule:
-    - cron:  '50 23 * * *'
+    - cron:  '51 11 * * *'
 
 jobs:
   tweet:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/cache@v2
+      - uses: actions/cache@v2.0.0
         id: rcache
         with:
           path: rlib
@@ -14,28 +15,32 @@ jobs:
       - run: Rscript -e 'dir.create("rlib"); install.packages("xml2", "rlib")'
         if: steps.rcache.outputs.cache-hit != 'true'
       - run: |
-          feed_url = "https://ruevko.github.io/hexagonal/index.xml" # a RSS feed
-          twt_head = "Recent entry in my blog:" # a message to start every tweet
-          message("Using ", R.version.string)
-          if (dir.exists("rlib")) .libPaths("rlib")
-          library("xml2"); message("and xml2 version ", packageVersion("xml2"))
+          twt_head = "Nuevo artículo en mi blog:" # a message with which every tweet will begin
+          feed_url = "https://ruevko.github.io/hexagonal/index.xml" # URL of the target RSS feed
+
+          .libPaths("rlib"); message("Using ", R.version.string)
+          library("xml2"); message(" & xml2 version ", packageVersion("xml2"))
           items = read_xml(feed_url)
-          items_date = xml_find_all(items, "channel/item/pubDate") |> xml_text() |>
+          items_dates = xml_find_all(items, "channel/item/pubDate") |> xml_text() |>
             as.POSIXct(tryFormats = paste0("%a, %d %b %Y", c("", " %T", " %T %z")))
-          items_is_new = items_date < Sys.time() & items_date > Sys.time() - 86400
-          if (!any(items_is_new)) message("NO NEW POSTS") else for (x in which(items_is_new)) {
-            twt_url = xml_find_all(items, sub("x", x, "channel/item[x]/link")) |> xml_text()
-            if (x != which(items_is_new)[1]) message("IGNORE POST: ", twt_url) else {
-              message("TWEET POST: ", twt_url); limit = 270 - nchar(twt_head) - nchar(twt_url)
-              twt = xml_find_all(items, sub("x", x, "channel/item[x]/description")) |> xml_text()
-              while (nchar(twt) > limit) twt = sub("\\s+\\S*$", "...", twt)
-              sub("x", paste(twt_head, twt, twt_url, sep = "\n"),
-                "echo TWITTER_STATUS='x' >> $GITHUB_ENV") |> system() } }
+          new_items = which(items_dates < Sys.time() & items_dates > Sys.time() - 86400)
+
+          if (length(new_items) == 0) message("NO NEW POSTS") else for (x in new_items) {
+            item_url = xml_find_all(items, sub("X", x, "channel/item[X]/link")) |> xml_text()
+            if (x != new_items[1]) message("IGNORE POST: ", item_url) else {
+              twt_url = item_url; message("TWEET POST: ", item_url)
+              twt = xml_find_all(items, sub("X", x, "channel/item[X]/description")) |> xml_text()
+            }
+          }
+          while (nchar(twt)>240-nchar(twt_head)-nchar(twt_url)) twt = sub("\\s+\\S*$", "...", twt)
+          c("TWEET=$(cat << EOF", twt_head, twt, twt_url, "EOF", ")",
+            paste("echo ", c("TWEET<<EOF", "$TWEET", "EOF"), " >> $GITHUB_ENV", sep = "\"")
+          ) |> paste(collapse = "\n") |> system()
         shell: Rscript {0}
       - uses: ethomson/send-tweet-action@v1.0.0
-        if: ${{ env.TWITTER_STATUS != '' }}
+        if: ${{ env.TWEET != '' }}
         with:
-          status: ${{ env.TWITTER_STATUS }}
+          status: ${{ env.TWEET }}
           consumer-key: ${{ secrets.TWITTER_API_KEY }}
           consumer-secret: ${{ secrets.TWITTER_API_KEY_SECRET }}
           access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
