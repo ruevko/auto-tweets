@@ -26,16 +26,16 @@ jobs:
           new_items = which(items_dates < Sys.time() & items_dates > Sys.time() - 86400)
 
           if (length(new_items) == 0) message("NO NEW POSTS") else for (x in new_items) {
-            item_url = xml_find_all(items, sub("X", x, "channel/item[X]/link")) |> xml_text()
-            if (x != new_items[1]) message("IGNORE POST: ", item_url) else {
-              twt_url = item_url; message("TWEET POST: ", item_url)
+            twt_url = xml_find_all(items, sub("X", x, "channel/item[X]/link")) |> xml_text()
+            if (x != new_items[1]) message("IGNORE POST: ", twt_url) else {
+              message("TWEET POST: ", twt_url)
               twt = xml_find_all(items, sub("X", x, "channel/item[X]/description")) |> xml_text()
+              while (nchar(twt) > 220 - nchar(twt_url)) twt = sub("\\s+\\S*$", "...", twt)
+              c("TWEET=$(cat << EOF", twt_head, twt, twt_url, "EOF", ")",
+                paste("echo ", c("TWEET<<EOF", "$TWEET", "EOF"), " >> $GITHUB_ENV", sep = "\"")
+              ) |> paste(collapse = "\n") |> system()
             }
           }
-          while (nchar(twt)>240-nchar(twt_head)-nchar(twt_url)) twt = sub("\\s+\\S*$", "...", twt)
-          c("TWEET=$(cat << EOF", twt_head, twt, twt_url, "EOF", ")",
-            paste("echo ", c("TWEET<<EOF", "$TWEET", "EOF"), " >> $GITHUB_ENV", sep = "\"")
-          ) |> paste(collapse = "\n") |> system()
         shell: Rscript {0}
       - uses: ethomson/send-tweet-action@v1.0.0
         if: ${{ env.TWEET != '' }}
