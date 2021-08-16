@@ -1,5 +1,4 @@
 on:
-  workflow_dispatch:
   schedule:
     - cron:  '51 11 * * *'
 
@@ -7,13 +6,16 @@ jobs:
   tweet:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/cache@v2.0.0
-        id: rcache
+      - id: rcache
+        uses: actions/cache@v2.0.0
         with:
           path: rlib
           key: ${{ runner.os }}-Rcache
-      - run: Rscript -e 'dir.create("rlib"); install.packages("xml2", "rlib")'
-        if: steps.rcache.outputs.cache-hit != 'true'
+      - if: steps.rcache.outputs.cache-hit != 'true'
+        run: |
+          dir.create("rlib")
+          install.packages("xml2", lib = "rlib")
+        shell: Rscript {0}
       - run: |
           twt_head = "Nuevo artículo en mi blog:" # a message with which every tweet will begin
           feed_url = "https://ruevko.github.io/hexagonal/index.xml" # URL of the target RSS feed
@@ -30,15 +32,16 @@ jobs:
             if (x != new_items[1]) message("IGNORE POST: ", twt_url) else {
               message("TWEET POST: ", twt_url)
               twt = xml_find_all(items, sub("X", x, "channel/item[X]/description")) |> xml_text()
-              while (nchar(twt) > 220 - nchar(twt_url)) twt = sub("\\s+\\S*$", "...", twt)
+              twt_lim = 240 - nchar(twt_head) - nchar(twt_url)
+              while (nchar(twt) > twt_lim) twt = sub("\\s+\\S*$", "...", twt)
               c("TWEET=$(cat << EOF", twt_head, twt, twt_url, "EOF", ")",
                 paste("echo ", c("TWEET<<EOF", "$TWEET", "EOF"), " >> $GITHUB_ENV", sep = "\"")
               ) |> paste(collapse = "\n") |> system()
             }
           }
         shell: Rscript {0}
-      - uses: ethomson/send-tweet-action@v1.0.0
-        if: ${{ env.TWEET != '' }}
+      - if: ${{ env.TWEET != '' }}
+        uses: ethomson/send-tweet-action@v1.0.0
         with:
           status: ${{ env.TWEET }}
           consumer-key: ${{ secrets.TWITTER_API_KEY }}
