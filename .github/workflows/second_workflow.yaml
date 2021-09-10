@@ -1,0 +1,50 @@
+on:
+  schedule:
+    - cron: '43 21 * * 5'
+
+jobs:
+  tweet:
+    runs-on: ubuntu-latest
+    steps:
+      - id: rcache
+        uses: actions/cache@v2.0.0
+        with:
+          path: rlib
+          key: ${{ runner.os }}-Rcache
+      - if: steps.rcache.outputs.cache-hit != 'true'
+        run: |
+          dir.create("rlib")
+          install.packages("xml2", lib = "rlib")
+        shell: Rscript {0}
+      - run: |
+          twt_head = "Nuevo artículo en mi blog:" # a message with which every tweet will begin
+          feed_url = "https://ruevko.github.io/hexagonal/index.xml" # URL of the target RSS feed
+
+          .libPaths("rlib"); message("Using ", R.version.string)
+          library("xml2"); message(" & xml2 version ", packageVersion("xml2"))
+          items = read_xml(feed_url)
+          items_dates = xml_find_all(items, "channel/item/pubDate") |> xml_text() |>
+            as.POSIXct(tryFormats = paste0("%a, %d %b %Y", c("", " %T", " %T %z")))
+          new_items = which(items_dates < Sys.time() & items_dates > Sys.time() - 86400*4.5)
+
+          if (length(new_items) == 0) message("NO NEW POSTS") else for (x in new_items) {
+            twt_url = xml_find_all(items, sub("X", x, "channel/item[X]/link")) |> xml_text()
+            if (x != new_items[1]) message("IGNORE POST: ", twt_url) else {
+              message("TWEET POST: ", twt_url)
+              twt = xml_find_all(items, sub("X", x, "channel/item[X]/description")) |> xml_text()
+              twt_lim = 240 - nchar(twt_head) - nchar(twt_url)
+              while (nchar(twt) > twt_lim) twt = sub("\\s+\\S*$", "...", twt)
+              c("TWEET=$(cat << EOF", twt_head, twt, twt_url, "EOF", ")",
+                paste("echo ", c("TWEET<<EOF", "$TWEET", "EOF"), " >> $GITHUB_ENV", sep = "\"")
+              ) |> paste(collapse = "\n") |> system()
+            }
+          }
+        shell: Rscript {0}
+      - if: ${{ env.TWEET != '' }}
+        uses: ethomson/send-tweet-action@v1.0.0
+        with:
+          status: ${{ env.TWEET }}
+          consumer-key: ${{ secrets.TWITTER_API_KEY }}
+          consumer-secret: ${{ secrets.TWITTER_API_KEY_SECRET }}
+          access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
