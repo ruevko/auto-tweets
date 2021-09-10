@@ -1,6 +1,6 @@
 on:
   schedule:
-    - cron: '43 21 * * 5'
+    - cron: '22 22 * * 5'
 
 jobs:
   tweet:
@@ -25,7 +25,7 @@ jobs:
           items = read_xml(feed_url)
           items_dates = xml_find_all(items, "channel/item/pubDate") |> xml_text() |>
             as.POSIXct(tryFormats = paste0("%a, %d %b %Y", c("", " %T", " %T %z")))
-          new_items = which(items_dates < Sys.time() & items_dates > Sys.time() - 86400*4.5)
+          new_items = which(items_dates < Sys.time() & items_dates > Sys.time() - 86400*7)
 
           if (length(new_items) == 0) message("NO NEW POSTS") else for (x in new_items) {
             twt_url = xml_find_all(items, sub("X", x, "channel/item[X]/link")) |> xml_text()
